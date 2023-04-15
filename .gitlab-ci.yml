@@ -1,0 +1,21 @@
+workflow:
+  rules:
+    - if: $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == 'main'
+      when: never
+    - if: $CI_COMMIT_BRANCH == "main"
+      variables:
+        TAG_NAME: apps0
+      when: always
+
+
+stages:
+- deploy
+deploy:
+  stage: deploy
+  tags:
+    - ${TAG_NAME}
+  script:
+  - docker compose down
+  - docker rmi ozon_performance_gtcom_parser_full-ozon-performance-gtcom-parser-full
+  - docker compose up -d
+#
