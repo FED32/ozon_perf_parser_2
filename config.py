@@ -22,7 +22,7 @@ CH_PORT = os.environ.get('ECOMRU_CH_PORT', None)
 using_db = 'clickhouse'
 data_folder = './data'
 CAMPS_LIM = 1
-DAYS_LIM = 1
+DAYS_LIM = 3
 ONLY_ACTIVE = True
 
 delete_files = 0
