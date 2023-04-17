@@ -25,7 +25,7 @@ CAMPS_LIM = 1
 DAYS_LIM = 3
 ONLY_ACTIVE = True
 
-delete_files = 0
+delete_files = 1
 upl_into_db = 1
 
 stat_table = 'ozon_perf_statistics_full'
