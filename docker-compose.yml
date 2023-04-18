@@ -4,7 +4,7 @@ networks:
     driver: bridge
     ipam:
       config:
-        - subnet: 172.26.0.1/16
+        - subnet: 172.15.0.1/16
 services:
   ozon-performance-gtcom-parser-full:
     container_name: ozon-performance-gtcom-parser-full
