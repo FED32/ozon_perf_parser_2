@@ -1,5 +1,10 @@
 version: "3.8"
-
+networks:
+  ozon:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.16.57.0/24
 services:
   ozon-performance-gtcom-parser-full:
     container_name: ozon-performance-gtcom-parser-full
@@ -22,5 +27,5 @@ services:
     command: sh script.sh
     volumes:
       - /home/get/logs_all/ozon_performance_gtcom_parser_full/:/app/logs/
-
+    networks: ozon 
 
