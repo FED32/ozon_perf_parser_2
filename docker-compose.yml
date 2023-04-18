@@ -27,5 +27,6 @@ services:
     command: sh script.sh
     volumes:
       - /home/get/logs_all/ozon_performance_gtcom_parser_full/:/app/logs/
-    networks: ozon 
+    networks: 
+      - ozon 
 
