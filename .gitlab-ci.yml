@@ -16,6 +16,5 @@ deploy:
     - ${TAG_NAME}
   script:
   - docker compose down
-  - docker rmi ozon_performance_gtcom_parser_full-ozon-performance-gtcom-parser-full
+  #- docker rmi ozon_performance_gtcom_parser_full-ozon-performance-gtcom-parser-full
   - docker compose up -d
-#
