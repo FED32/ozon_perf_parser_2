@@ -29,6 +29,8 @@ class OzonPerformanceEcom2:
         self.camp_lim = 8
         self.day_lim = 30
 
+        self.passed = []
+
     def get_token(self):
         """
         Авторизация с получением токена
@@ -49,7 +51,7 @@ class OzonPerformanceEcom2:
             print(response.text)
             return None
 
-    def get_campaigns(self, active_only=False):
+    def get_campaigns(self, active_only: bool = False) -> list[str]:
         """
         Получение кампаний
         """
@@ -188,11 +190,13 @@ class OzonPerformanceEcom2:
                     n += 1
             print(f'Request declined {n_attempts} times')
             self.get_stat_report.append(
-                {'account_id': self.account_id, 'date_from': date_from, 'date_to': date_to, 'ids': campaigns, 'status': 'declined'})
+                {'account_id': self.account_id, 'date_from': date_from, 'date_to': date_to, 'ids': campaigns,
+                 'status': 'declined'})
             return None
         else:
             self.get_stat_report.append(
-                {'account_id': self.account_id, 'date_from': date_from, 'date_to': date_to, 'ids': campaigns, 'status': 'declined'})
+                {'account_id': self.account_id, 'date_from': date_from, 'date_to': date_to, 'ids': campaigns,
+                 'status': 'declined'})
             print(f'Error statistics {response.status_code}')
             return None
 
@@ -445,4 +449,46 @@ class OzonPerformanceEcom2:
             dataset.replace({'nan': None}, inplace=True)
 
             return dataset
+
+    def get_reports(self,
+                    date_from: str,
+                    date_to: str,
+                    active_only: bool,
+                    path_: str
+                    ):
+        """Загружает отчеты"""
+
+        folder = path_ + f'{self.account_id}-{self.client_id}/'
+        if not os.path.isdir(folder):
+            os.mkdir(folder)
+
+        if not os.path.isdir(folder + 'statistics'):
+            os.mkdir(folder + 'statistics')
+
+        campaigns = self.get_campaigns(active_only=active_only)
+
+        result = []
+
+        if len(campaigns) > 0:
+            data = self.split_data(campaigns=campaigns, camp_lim=self.camp_lim)
+            time_ = self.split_time(date_from=date_from, date_to=date_to, day_lim=self.day_lim)
+
+            for d in data:
+                for t in time_:
+                    statistics = self.get_statistics(campaigns=d, date_from=t[0], date_to=t[1])
+
+                    if statistics is None:
+                        self.passed.append({'campaigns': d, 'date_from': d[0], 'date_to': d[1]})
+
+                    else:
+                        rep = self.get_report(uuid=statistics['UUID'],
+                                              format_=statistics['format'],
+                                              path=(folder + 'statistics'))
+
+                        result.append(rep)
+
+                        if rep is None:
+                            self.passed.append({'campaigns': d, 'date_from': d[0], 'date_to': d[1]})
+
+        return result
 

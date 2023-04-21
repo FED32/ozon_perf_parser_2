@@ -21,8 +21,9 @@ CH_PORT = os.environ.get('ECOMRU_CH_PORT', None)
 
 using_db = 'clickhouse'
 data_folder = './data'
+lost_folder = './lost'
 CAMPS_LIM = 1
-DAYS_LIM = 3
+DAYS_LIM = 7
 ONLY_ACTIVE = True
 
 delete_files = 1
@@ -37,6 +38,10 @@ if not os.path.isdir(data_folder):
 path_ = f'{data_folder}/{str(date.today())}/'
 if not os.path.isdir(path_):
     os.mkdir(path_)
+# путь для сохранения потерянных отчетов
+if not os.path.isdir(lost_folder):
+    os.mkdir(lost_folder)
+
 
 if sys.platform == 'linux':
     CH_CA_CERTS = "/usr/local/share/ca-certificates/Yandex/YandexCA.crt"

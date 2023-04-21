@@ -15,12 +15,47 @@ from ozon_performance_2 import OzonPerformanceEcom2
 logger = logger.init_logger()
 
 
+# def get_reports(*args):
+#
+#     api_id = args[1].split('-')[0]
+#
+#     try:
+#         last_date = last_dates[last_dates['api_id'] == str(api_id)]['max_date'].values[0]
+#         date_from = str(np.datetime64(last_date, 'D') + np.timedelta64(1, 'D'))
+#         # date_from = str(last_date + timedelta(days=1))
+#
+#     except (IndexError, KeyError, ValueError):
+#         date_from = str(date.today() - timedelta(days=30))
+#
+#     date_to = str(date.today() - timedelta(days=1))
+#
+#     ozon = OzonPerformanceEcom2(account_id=args[0], client_id=args[1], client_secret=args[2])
+#     ozon.camp_lim = config.CAMPS_LIM
+#     ozon.day_lim = config.DAYS_LIM
+#
+#     if ozon.auth is not None:
+#         logger.info(f"Аккаунт id {args[0]}: {len(ozon.get_campaigns(active_only=config.ONLY_ACTIVE))} кампаний")
+#
+#         stat = ozon.collect_statistics(date_from=date_from, date_to=date_to, active_only=config.ONLY_ACTIVE)
+#
+#         if len(stat) > 0:
+#
+#             rep_ok = len([item for item in stat if item is not None])
+#             rep_lost = len([item for item in stat if item is None])
+#             logger.info(f"Аккаунт id {args[0]}, отчетов получено: {rep_ok}, отчетов отказано: {rep_lost}")
+#
+#             ozon.save_statistics(st_camp=stat, path_=config.path_)
+#
+#         else:
+#             logger.info(f"Аккаунт id {args[0]}: нет кампаний для сбора статистики")
+
+
 def get_reports(*args):
 
     api_id = args[1].split('-')[0]
 
     try:
-        last_date = last_dates[last_dates['api_id'] == int(api_id)]['max_date'].values[0]
+        last_date = last_dates[last_dates['api_id'] == str(api_id)]['max_date'].values[0]
         date_from = str(np.datetime64(last_date, 'D') + np.timedelta64(1, 'D'))
         # date_from = str(last_date + timedelta(days=1))
 
@@ -34,18 +69,20 @@ def get_reports(*args):
     ozon.day_lim = config.DAYS_LIM
 
     if ozon.auth is not None:
-        stat = ozon.collect_statistics(date_from, date_to, active_only=config.ONLY_ACTIVE)
 
-        if len(stat) > 0:
+        reports = ozon.get_reports(date_from=date_from, date_to=date_to, active_only=config.ONLY_ACTIVE, path_=config.path_)
 
-            rep_ok = len([item for item in stat if item is not None])
-            rep_lost = len([item for item in stat if item is None])
-            logger.info(f"Аккаунт id {args[0]}, отчетов получено: {rep_ok}, отчетов отказано: {rep_lost}")
+        rep_ok = len([item for item in reports if item is not None])
+        rep_lost = len([item for item in reports if item is None])
+        logger.info(f"Аккаунт id {args[0]}, отчетов получено: {rep_ok}, отчетов отказано: {rep_lost}")
 
-            ozon.save_statistics(st_camp=stat, path_=config.path_)
+        lost_reports = pd.DataFrame(ozon.passed)
+        if lost_reports.shape[0] > 0:
+            lost_path = f'./lost/{date.today()}'
+            if not os.path.isdir(lost_path):
+                os.mkdir(lost_path)
 
-        else:
-            logger.info(f"Аккаунт id {args[0]}: нет кампаний для сбора статистики")
+            lost_reports.to_csv(f'./lost/{date.today()}/{api_id}.csv', index=False, encoding='utf-8')
 
 
 client = clickhouse_connect.get_client(
