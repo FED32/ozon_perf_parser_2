@@ -30,6 +30,7 @@ delete_files = 1
 upl_into_db = 1
 
 stat_table = 'ozon_perf_statistics_full'
+lost_table = 'ozon_perf_stat_lost_reports'
 
 # создаем рабочую папку, если еще не создана
 if not os.path.isdir(data_folder):

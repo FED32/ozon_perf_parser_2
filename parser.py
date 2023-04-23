@@ -69,6 +69,7 @@ def get_reports(*args):
     ozon.day_lim = config.DAYS_LIM
 
     if ozon.auth is not None:
+        logger.info(f"Аккаунт id {args[0]} найдено кампаний: {len(ozon.get_campaigns(active_only=config.ONLY_ACTIVE))}")
 
         reports = ozon.get_reports(date_from=date_from, date_to=date_to, active_only=config.ONLY_ACTIVE, path_=config.path_)
 
@@ -76,13 +77,11 @@ def get_reports(*args):
         rep_lost = len([item for item in reports if item is None])
         logger.info(f"Аккаунт id {args[0]}, отчетов получено: {rep_ok}, отчетов отказано: {rep_lost}")
 
-        lost_reports = pd.DataFrame(ozon.passed)
-        if lost_reports.shape[0] > 0:
-            lost_path = f'./lost/{date.today()}'
-            if not os.path.isdir(lost_path):
-                os.mkdir(lost_path)
-
-            lost_reports.to_csv(f'./lost/{date.today()}/{api_id}.csv', index=False, encoding='utf-8')
+        # print(ozon.lost)
+        if len(ozon.lost) > 0:
+            lost_reports = pd.DataFrame(ozon.lost)
+            lost_reports.to_csv(f'./lost/{ozon.account_id}-{ozon.client_id}.csv', index=False, encoding='utf-8',
+                                sep=';')
 
 
 client = clickhouse_connect.get_client(
@@ -151,9 +150,17 @@ else:
         logger.info('Delete canceled')
 
 
+lost_data = OzonPerformanceEcom2.make_lost_dataset(path=config.lost_folder)
 
-
-
-
+if lost_data is None:
+    logger.info('No lost data')
+else:
+    upl = db_work_ch.insert_data(dataset=lost_data, table_name=config.lost_table, client=client, logger=logger)
+    if upl is not None:
+        try:
+            shutil.rmtree(config.lost_folder)
+            logger.info('Files (folder) deleted')
+        except OSError as e:
+            logger.error("Error: %s - %s." % (e.filename, e.strerror))
 
 

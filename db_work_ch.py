@@ -65,3 +65,38 @@ def insert_data(dataset, table_name: str, client, logger):
         logger.error(f"database error: {ex}")
         return None
 
+
+def truncate_table(table_name: str, client, logger):
+    """Очистка таблицы"""
+
+    query = f"TRUNCATE TABLE {table_name}"
+
+    try:
+        res = client.query(query)
+        logger.info(f"truncated {table_name}")
+        return 'ok'
+
+    except (ProgrammingError, KeyError) as ex:
+        logger.error(f"database error: {ex}")
+        return None
+
+
+def get_table(table_name: str, client, logger):
+    """Получить таблицу"""
+
+    query = f"""
+             SELECT * 
+             FROM {table_name}
+             """
+
+    try:
+        res = client.query_df(query)
+    except (ClickHouseError, InterfaceError, DatabaseError) as ex:
+        logger.error(f"database error: {ex}")
+        res = None
+
+    return res
+
+
+
+

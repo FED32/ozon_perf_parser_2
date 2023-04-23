@@ -29,7 +29,7 @@ class OzonPerformanceEcom2:
         self.camp_lim = 8
         self.day_lim = 30
 
-        self.passed = []
+        self.lost = []
 
     def get_token(self):
         """
@@ -478,17 +478,110 @@ class OzonPerformanceEcom2:
                     statistics = self.get_statistics(campaigns=d, date_from=t[0], date_to=t[1])
 
                     if statistics is None:
-                        self.passed.append({'campaigns': d, 'date_from': d[0], 'date_to': d[1]})
+                        self.lost.append({'date_time': datetime.now(),
+                                          'account_id': self.account_id,
+                                          'client_id': self.client_id,
+                                          'campaigns': d,
+                                          'date_from': t[0],
+                                          'date_to': t[1]})
+
+                        result.append(None)
 
                     else:
                         rep = self.get_report(uuid=statistics['UUID'],
                                               format_=statistics['format'],
                                               path=(folder + 'statistics'))
 
-                        result.append(rep)
-
                         if rep is None:
-                            self.passed.append({'campaigns': d, 'date_from': d[0], 'date_to': d[1]})
+                            self.lost.append({'date_time': datetime.now(),
+                                              'account_id': self.account_id,
+                                              'client_id': self.client_id,
+                                              'campaigns': d,
+                                              'date_from': t[0],
+                                              'date_to': t[1]})
+
+                            result.append(None)
+
+                        else:
+                            result.append(rep)
 
         return result
+
+    @staticmethod
+    def make_lost_dataset(path):
+        """Собирает общий датасет потерянных отчетов из файлов"""
+
+        csv_files = glob.glob(os.path.join(path, "*.csv"))
+
+        if len(csv_files) == 0:
+            return None
+
+        data = [pd.read_csv(file, sep=';') for file in csv_files]
+        dataset = pd.concat(data, axis=0).reset_index().drop('index', axis=1)
+        dataset['date_time'] = pd.to_datetime(dataset['date_time'])
+        dataset['account_id'] = dataset['account_id'].astype('str', copy=False, errors='ignore')
+        dataset['date_from'] = dataset['date_from'].astype('str', copy=False, errors='ignore')
+        dataset['date_to'] = dataset['date_to'].astype('str', copy=False, errors='ignore')
+        dataset['campaigns'] = dataset['campaigns'].apply(
+            lambda x: x.replace('[', '').replace(']', '').replace("'", '').replace(" ", '').split(','))
+
+        return dataset
+
+    def get_lost_reports(self,
+                         # campaigns: list[str],
+                         # date_from: str,
+                         # date_to: str,
+                         acc_lost_reports,
+                         path_: str
+                         ):
+        """Загружает отчет"""
+
+        folder = path_ + f'{self.account_id}-{self.client_id}/'
+        if not os.path.isdir(folder):
+            os.mkdir(folder)
+
+        if not os.path.isdir(folder + 'statistics'):
+            os.mkdir(folder + 'statistics')
+
+        result = []
+
+        for index_, keys_ in acc_lost_reports.iterrows():
+            campaigns = keys_[3]
+            date_from = keys_[4]
+            date_to = keys_[5]
+
+            statistics = self.get_statistics(campaigns=campaigns, date_from=date_from, date_to=date_to)
+
+            if statistics is None:
+                self.lost.append({'date_time': datetime.now(),
+                                  'account_id': self.account_id,
+                                  'client_id': self.client_id,
+                                  'campaigns': campaigns,
+                                  'date_from': date_from,
+                                  'date_to': date_to})
+
+                result.append(None)
+
+            else:
+                rep = self.get_report(uuid=statistics['UUID'],
+                                      format_=statistics['format'],
+                                      path=(folder + 'statistics'))
+
+                if rep is None:
+                    self.lost.append({'date_time': datetime.now(),
+                                      'account_id': self.account_id,
+                                      'client_id': self.client_id,
+                                      'campaigns': campaigns,
+                                      'date_from': date_from,
+                                      'date_to': date_to})
+
+                    result.append(None)
+
+                else:
+                    result.append(rep)
+
+        return result
+
+
+
 
