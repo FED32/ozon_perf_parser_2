@@ -441,7 +441,7 @@ class OzonPerformanceEcom2:
                     dataset[col] = dataset[col].astype('float', copy=False, errors='ignore')
                 elif dtypes[col] == 'datetime':
                     # dataset[col] = pd.to_datetime(dataset[col], unit='D', errors='ignore')
-                    dataset[col] = dataset[col].apply(lambda x: datetime.strptime(x, '%d.%m.%Y').date())
+                    dataset[col] = dataset[col].apply(lambda x: datetime.strptime(str(x), '%d.%m.%Y').date())
                 elif dtypes[col] == 'str':
                     dataset[col] = dataset[col].astype('str', copy=False, errors='ignore')
 
@@ -534,7 +534,7 @@ class OzonPerformanceEcom2:
                          acc_lost_reports,
                          path_: str
                          ):
-        """Загружает отчет"""
+        """Загружает отчеты"""
 
         folder = path_ + f'{self.account_id}-{self.client_id}/'
         if not os.path.isdir(folder):
