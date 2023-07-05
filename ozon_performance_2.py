@@ -143,12 +143,12 @@ class OzonPerformanceEcom2:
         return tms
 
     def get_statistics(self,
-                       campaigns: list,
-                       date_from,
-                       date_to,
-                       group_by='DATE',
-                       n_attempts=5,
-                       delay=10
+                       campaigns: list[str],
+                       date_from: str,
+                       date_to: str,
+                       group_by: str = 'DATE',
+                       n_attempts: int = 5,
+                       delay: int = 10
                        ):
         """Формирует запрос статистики, возвращает UUID и формат"""
 
@@ -189,18 +189,18 @@ class OzonPerformanceEcom2:
                 else:
                     n += 1
             print(f'Request declined {n_attempts} times')
-            self.get_stat_report.append(
-                {'account_id': self.account_id, 'date_from': date_from, 'date_to': date_to, 'ids': campaigns,
-                 'status': 'declined'})
+            # self.get_stat_report.append(
+            #     {'account_id': self.account_id, 'date_from': date_from, 'date_to': date_to, 'ids': campaigns,
+            #      'status': 'declined'})
             return None
         else:
-            self.get_stat_report.append(
-                {'account_id': self.account_id, 'date_from': date_from, 'date_to': date_to, 'ids': campaigns,
-                 'status': 'declined'})
+            # self.get_stat_report.append(
+            #     {'account_id': self.account_id, 'date_from': date_from, 'date_to': date_to, 'ids': campaigns,
+            #      'status': 'declined'})
             print(f'Error statistics {response.status_code}')
             return None
 
-    def status_report(self, uuid):
+    def status_report(self, uuid: str):
         """Возвращает статус отчета"""
 
         url = f"https://performance.ozon.ru:443/api/client/statistics/{uuid}"
@@ -218,7 +218,7 @@ class OzonPerformanceEcom2:
             print(response.text)
             return None
 
-    def download_report(self, uuid):
+    def download_report(self, uuid: str):
         """Загружает файл отчета"""
 
         url = f"https://performance.ozon.ru:443/api/client/statistics/report?UUID={uuid}"
